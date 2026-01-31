@@ -21,7 +21,7 @@ class LogAnalyzer:
 
     # Magic method
     def __init__(self, log_file: str, flags=[''], starting_position=0):
-        # Validating function parameters
+        # Validating method parameters
         if not os.path.isfile(log_file):
             raise ValueError('Log file: {:s} could not be found'.format(log_file))
 
@@ -105,7 +105,7 @@ class LogAnalyzer:
         return self._log_file
 
     def run(self):
-        """This function starts the LogAnalyzer
+        """This instance method starts the LogAnalyzer
         Note: Logs flagged total can be more than the number
         of entries in the log file if multiple flags are
         found in a single entry. Flagged logs are also appended to the
