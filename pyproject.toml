@@ -12,7 +12,8 @@ requires-python = ">=3.11"
 # Add the project Python dependencies here
 dependencies = [
     "datetime",
-    "argparse"
+    "argparse",
+    "pandas"
 ]
 
 #[tool.setuptools.packages]
