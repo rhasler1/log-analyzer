@@ -1,5 +1,5 @@
 # 1/30/26:
-# This is a prototype to analyze logfiles.
+# This is a prototype to analyze static logfiles.
 # The functional requirements are:
 # - Display the number of logs processed
 # - Flag logs based on string matching
@@ -11,19 +11,34 @@ import os.path
 from datetime import datetime
 
 class LogAnalyzer:
+    # Setting class attributes
+    # 1 MB file limit
+    _MAX_LOG_FILE_SIZE_BYTES = (1024 * 1024)
+
+    @property
+    def MAX_LOG_FILE_SIZE_BYTES(self):
+        return self._MAX_LOG_FILE_SIZE_BYTES
+
     # Magic method
     def __init__(self, log_file: str, flags=[''], starting_position=0):
         # Validating function parameters
         if not os.path.isfile(log_file):
             raise ValueError('Log file: {:s} could not be found'.format(log_file))
-        
-        with open(log_file, 'r') as file:
-            line_count = sum(1 for line in file)
 
+        with open(log_file, 'r') as file:
+            line_count=0
+            current_size=0
+            for line in file:
+                current_size += len(line.encode('utf-8'))
+                if (current_size > self._MAX_LOG_FILE_SIZE_BYTES):
+                    raise ValueError('The file size: {:d} surpasses \
+                                     max file size: {:d}'.format(current_size, self._MAX_LOG_FILE_SIZE_MB))
+                line_count+=1
+       
         if starting_position >= line_count:
             raise ValueError(f'Starting position: {starting_position} (starting position) \
                     is out of bounds: {line_count} (line count)')
-        
+
         # Setting instance attributes
         self._logs_processed_total=0
         self._logs_flagged_total=0
@@ -91,7 +106,7 @@ class LogAnalyzer:
 
     def run(self):
         """This function starts the LogAnalyzer
-        Developer note: Logs flagged total can be more than the number
+        Note: Logs flagged total can be more than the number
         of entries in the log file if multiple flags are
         found in a single entry. Flagged logs are also appended to the
         _logs_flagged container multiple times for same reason.
@@ -105,25 +120,11 @@ class LogAnalyzer:
 
                 self._logs_processed_total+=1
 
-def log(logfile: str, message: str) -> None:
-    """This function writes the message 'message' and time of occurrence into the file logfile.
-
-    Args:
-        logfile (str): log file
-        message (str): message to be written into the log file
-    """
-    # datetime format. Remark that:
-    ## .%f appends the parts of the second
-    ## the tailing ', ' are intentionally used to separate the timestamp and the logged message
-    datatime_format = '%Y-%m-%d-%H:%M:%S.%f, '
-    datetimestamp = datetime.now().strftime(datatime_format)
-
-    ## log events are separated by the new character
-    with open(logfile, 'a') as file:
-        file.write(datetimestamp + message + '\n')
-
 def main() -> None:
     print('\n\nStarting program...')
+    test_run()
+
+def test_run() -> None:
     print('Hard coding inputs to test class LogAnalyzer')
     # Here I am emulating user input for testing
     log_file='test_log.txt'
@@ -141,6 +142,7 @@ def main() -> None:
     print(f'Creating LogAnalyzer with arguments {log_file} and {flags}...')
     log_analyzer = LogAnalyzer(log_file=log_file, flags=flags)
     print('Log analyzer created')
+    print(f'Max log file size in bytes: {log_analyzer.MAX_LOG_FILE_SIZE_BYTES}')
     print(f'Number of log entries analyzed before running: {log_analyzer.logs_processed_total}')
     
     # Running log analyzer
@@ -151,6 +153,23 @@ def main() -> None:
     print('Number of log entries analyzed: {}'.format(log_analyzer.logs_processed_total))
     print('Number of logs flagged: {}'.format(log_analyzer.logs_flagged_total))
     print('Flagged log:\n{}'.format(log_analyzer.logs_flagged))
+
+def log(logfile: str, message: str) -> None:
+    """This function writes the message 'message' and time of occurrence into the file logfile.
+
+    Args:
+        logfile (str): log file
+        message (str): message to be written into the log file
+    """
+    # datetime format. Remark that:
+    ## .%f appends the parts of the second
+    ## the tailing ', ' are intentionally used to separate the timestamp and the logged message
+    datatime_format = '%Y-%m-%d-%H:%M:%S.%f, '
+    datetimestamp = datetime.now().strftime(datatime_format)
+
+    ## log events are separated by the new character
+    with open(logfile, 'a') as file:
+        file.write(datetimestamp + message + '\n')
 
 if __name__ == 'main':
     main()
