@@ -1,0 +1,9 @@
+title = "Log Analyzer Config File"
+
+[config]
+# This is the log file that is used internally to track application state and bookkeeping information.
+log_file='log-analyzer.log'
+# This is the buffer size in bytes for the buffer that stores log data.
+buffer_size = 4096
+# This is the maximum output file size
+output_size = 4096

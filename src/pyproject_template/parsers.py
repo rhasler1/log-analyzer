@@ -24,7 +24,6 @@ def unstructuredcsv_to_frozenset(csv_file: str):
     try:
         with open(csv_file) as file:
             csv_reader=csv.reader(file, delimiter=',')
-            rows_matrix=[]
             for row in csv_reader:
                 for value in row:
                     retval.add(value)

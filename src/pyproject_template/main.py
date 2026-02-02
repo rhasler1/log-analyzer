@@ -1,8 +1,16 @@
 import sys
 import argparse
+import logging
 from .log_analyzer import analyze_log_static, analyze_log_dynamic
+from .config import Config
 
-#TODO: 2/2/26-Think about moving size constraints from command line argument to a config file.
+logger = logging.getLogger(__name__)
+def init_logger():
+    """This function initializes the logger used by all
+    project modules.
+    """
+    FORMAT = '%(asctime)s %(levelname)s %(message)s'
+    logging.basicConfig(filename='log-analyzer.log', format=FORMAT, level=logging.INFO)
 
 def parse_args():
     """This function parses positional and optional arguments.
@@ -17,10 +25,6 @@ def parse_args():
     parser.add_argument('outputfile', type=str, help='path to output file to write results to')
     parser.add_argument('-d', '--dynamic', help='for dynamic log file analysis',
                         action='store_true')
-    parser.add_argument('-o', '--outputfilesize', type=int, 
-                        help='the writable file\'s maximum size as bytes in decimal', default='4096')
-    parser.add_argument('-b', '--buffersize', type=int,
-                        help='the writable buffer\'s maximum size as bytes in decimal', default='4096')
     args = parser.parse_args()
     return args
 
@@ -31,14 +35,33 @@ def main() -> None:
     If parameters are correct, proceeds to log analysis.
     Else, exits program.
     """
+    init_logger()
+    logger.info('In the program\'s main entry point')
+    logger.info('Beginning to parse command line arguments')
     args=parse_args()
     log_file=args.logfile
     pattern_file=args.patternfile
     output_file=args.outputfile
-    output_file_size=args.outputfilesize
-    buffer_size=args.buffersize
+    logger.info(f'Done parsing command line arguments. \
+The log file path is set to \'{log_file}\'. \
+The pattern file path is set to \'{pattern_file}\'. \
+The output file path is set to \'{output_file}\'.')
 
+    logger.info('Attempting to create configuration object')
+    config=Config()
+    if 'config' not in config.data:
+        sys.exit(0)
+    if ('buffer_size' not in config.data['config']
+    or 'output_size' not in config.data['config']):
+        sys.exit(0)
+    buffer_size=int(config.data['config']['buffer_size'])
+    output_file_size=int(config.data['config']['output_size'])
+    logger.info(f'The configuraton object was successfully created. \
+The internal buffer size is set to \'{buffer_size}\' Bytes. \
+The output file size is set to \'{output_file_size}\' Bytes.')
+   
     try:
+        logger.info('Welcoming user and asking for parameter verification')
         print('\n- Welcome to Log Analyzer -')
         print('Press Ctrl+c to exit the program at anytime')
         print('\nThe command line positional and optional arguments have been parsed \
@@ -52,6 +75,7 @@ def main() -> None:
         
         user_input=input('\nAre these parameters correct? [yes]/[no] ')
         if user_input != 'yes':
+            logger.info(f'User input \'{user_input}\' is not \'yes\' exiting program')
             print('\nProvide the desired parameters as positional and optional arguments when calling the program entry point')
             print('\nExiting program now')
             sys.exit(0)
