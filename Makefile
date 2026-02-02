@@ -11,7 +11,7 @@ PIP 		:= $(VENV)/bin/pip
 # Optional logs directory
 LOGS_DIR 	:= logs
 
-.PHONY: $(LOGS_DIR) $(PYTHON) $(PIP) install run clean_logs clean
+.PHONY: $(LOGS_DIR) $(PYTHON) $(PIP) install run test clean_logs clean
 
 # Makefile targets
 # Build logs directory
@@ -37,7 +37,15 @@ install: | $(PIP)
 
 run: logs
 	@echo "Execute main entry point"
-	$(VENV)/bin/$(PROJECT) --log-file $(LOGS_DIR)/log.txt
+	$(VENV)/bin/$(PROJECT) logfile1 patternfile1 outputfile1
+
+run_help: logs
+	@echo "Execute main entry point with help flag"
+	$(VENV)/bin/$(PROJECT) -h
+
+test:
+	@echo "Running unit tests"
+	$(PYTHON) -m unittest discover -s tests
 
 # Removes logs directory
 clean_logs:
